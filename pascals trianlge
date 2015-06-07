@@ -1,0 +1,75 @@
+import java.io.*;
+public class Pascals_Triangle
+{public static void triangle(int n)
+   {
+       int c,max=digit(get_max(n)),d1,d2,d;
+       long v;
+       
+       String s1,s2,s3;
+       for(int r=1;r<=n;r++)
+       {
+           v=1;
+           
+           s1=space(max*(n-r));
+           System.out.print(s1);           
+           for(c=1;c<=r;c++)
+            {
+             v=pascal(v,r,c);
+             d=max-digit(v);
+             d1=d/2;
+             d2=d-d1;
+             s1=space(d1);
+             s2=space(d2);
+             s3=space(max);
+             System.out.print(s1+s3+v+s2);             
+            }
+        System.out.println();
+       }
+}
+
+public static long pascal(long v,int r,int c)
+{ if(c!=1)
+    {c--;
+     v=v*(r-c)/c;
+    }
+  else 
+  v=1;
+  return v;
+
+}
+
+public static long get_max(int n)
+{ long v=1;
+int l=(n+1)/2;
+ for(int c=2;c<=l;c++)
+  v=pascal(v,n,c);
+  return v;
+}
+
+public static int digit(long n)
+{   int digit=1;
+    for(int no=0;n>=(Math.pow(10,no));no++)
+           digit=no+1;
+    return digit;
+}
+
+public static String space(int n)
+{
+ String s="";
+ for(int ctr=1;ctr<=n;ctr++)
+  s=s+" ";
+ return s;
+}
+
+public static void main()throws IOException
+{InputStreamReader isr=new InputStreamReader(System.in);
+ BufferedReader br=new BufferedReader(isr);
+ System.out.println("\fenter nunber of lines");
+ int n=Integer.parseInt(br.readLine());
+ while(n>62)
+ {System.out.println("\fNumber too large!!\nEnter again");
+  n=Integer.parseInt(br.readLine());
+ }
+ triangle(n);
+}
+}
