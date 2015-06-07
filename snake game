@@ -1,0 +1,786 @@
+#include<conio.h>
+#include<iostream>
+#include<fstream>
+#include<stdlib.h>
+//#include<ctype.h>
+#include<windows.h>
+#include<math.h>
+//#include<time.h>
+#include<vector>
+
+#define GRIDX 40
+#define GRIDY 20
+
+#define DELAY 80
+#define MAXPLAYERS 4
+
+#define BORDERCLR 8
+#define WALLCLR 9
+#define WINCLR 11
+#define LOSECLR 14
+#define RULESCLR 12
+#define TITLECLR 4
+#define FOODCLR 15
+#define BACKGROUNDCLR 0
+#define INPUTCLR 7
+#define TEXTCLR 6
+#define INTROCLR 13
+#define CONTROLSCLR 15
+
+#define P1CLR 3
+#define P2CLR 2
+#define P3CLR 10
+#define P4CLR 11
+
+using namespace std;
+
+void gotoxy(int x, int y)
+{
+  static HANDLE h = NULL;
+  if(!h)
+    h = GetStdHandle(STD_OUTPUT_HANDLE);
+  COORD c = { x, y };
+  SetConsoleCursorPosition(h,c);
+}
+
+void textcolor(int fcolour,int bcolour=BACKGROUNDCLR)
+{
+    int colour=16*bcolour+fcolour;
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),colour);
+    return;
+}
+
+int getrand(int a)
+{
+    unsigned int s;
+    time_t t;
+    s=(unsigned)time(&t);
+	srand(s);
+    return rand()%a;
+}
+
+class Board
+{
+	public:
+		static vector<vector<int> > grid;
+		static vector<vector<int> > gmap;
+
+		static void addlevel();
+		static void add(int,int,int,int,int);
+		static void reset(int,int,int,int,int);
+		static void blank();
+		static void print();
+		static void update();
+};
+vector<vector<int> > Board::grid;
+vector<vector<int> > Board::gmap;
+
+void Board::blank()
+{
+	system("cls");
+	int i,j;
+	textcolor(BORDERCLR);
+	printf("\n\n  +");
+	for(i=0;i<GRIDX;i++)
+		printf("-");
+	printf("+\n");
+	for(i=0;i<(GRIDY-1);i++)
+	{
+		printf("  |");
+		for(j=0;j<GRIDX;j++)
+		{
+			printf(" ");
+		}
+		printf("|\n");
+	}
+	printf("  +");
+	for(i=0;i<GRIDX;i++)
+		printf("-");
+	printf("+");
+}
+void Board::print()
+{
+	system("cls");
+	int i,j;
+	textcolor(BORDERCLR);
+	printf("\n\n  +");
+	for(i=0;i<GRIDX;i++)
+		printf("-");
+	printf("+\n");
+	for(i=0;i<(GRIDY-1);i++)
+	{
+		textcolor(BORDERCLR);
+		printf("  |");
+		textcolor(WALLCLR);
+		for(j=0;j<GRIDX;j++)
+		{
+			if(grid[i][j]%2==1)
+                printf("#");
+			else
+                printf(" ");
+		}
+		textcolor(BORDERCLR);
+		printf("|\n");
+	}
+	printf("  +");
+	for(i=0;i<GRIDX;i++)
+		printf("-");
+	printf("+");
+}
+
+void Board::addlevel()
+{
+    add((GRIDY/2)-1,(GRIDX/2)-1,(GRIDY/2)+1,(GRIDX/2)+1,1);
+
+	add(3,3,5,GRIDX-4,2);
+	add(GRIDY-6,3,GRIDY-4,GRIDY-4,2);
+
+	add(3,3,7,7,3);
+	add(GRIDY-8,3,GRIDY-4,7,3);
+	add(3,GRIDX-8,7,GRIDX-4,3);
+	add(GRIDY-8,GRIDX-8,GRIDY-4,GRIDX-4,3);
+
+	add((GRIDY/2)-1,0,(GRIDY/2)+1,GRIDX-1,4);
+	add(0,(GRIDX/2)-1,GRIDY-1,(GRIDX/2)+1,4);
+
+	add(2,1,GRIDY-5,2,5);
+	add(2,GRIDX-3,GRIDY-4,GRIDX-2,5);
+	add(1,3,2,GRIDX-4,5);
+	add(GRIDY-4,2,GRIDY-3,GRIDX-6,5);
+	add((GRIDY/2)-3,(GRIDX/2)-1,(GRIDY/2),(GRIDX/2)+1,5);
+}
+
+void Board::add(int a,int b,int c,int d,int l)
+{
+
+	int i,j;
+	for(i=a;i<=c;i++)
+		for(j=b;j<=d;j++)
+			grid[i][j]|=(int)pow(2,l);
+}
+
+void Board::reset(int a,int b,int c,int d,int l)
+{
+	int i,j;
+	for(i=a;i<=c;i++)
+		for(j=b;j<=d;j++)
+			grid[i][j]&=!((int)pow(2,l));
+}
+
+void Board::update()
+{
+    int i,j;
+    for(i=0;i<GRIDY-1;i++)
+        for(j=0;j<GRIDX;j++)
+        grid[i][j]/=2;
+
+}
+
+class Food
+{
+    static int foodx,foody,foodeaten;
+
+	public:
+		static void newloc();
+		static void showloc();
+		static void eat(int);
+		static int iseaten(int);
+		static int ismatch(int,int);
+};
+
+int Food::foodx=0;
+int Food::foody=0;
+int Food::foodeaten=0;
+
+void Food::showloc()
+{
+	gotoxy(foody+3,foodx+3);
+	textcolor(FOODCLR);
+	printf("@");
+	gotoxy(GRIDX+4,2);
+	cout<<"Snake Length(s):";
+}
+
+void Food::newloc()
+{
+	foodeaten=0;
+	do{
+			foodx=getrand(GRIDY-1);
+			foody=getrand(GRIDX);
+	}while(Board::grid[foodx][foody]%2==1);
+	showloc();
+}
+
+int Food::iseaten(int index)
+{
+	return (foodeaten>>index)%2==1 ? 1:0;
+}
+
+int Food::ismatch(int x,int y)
+{
+	return (foodx==x&&foody==y) ? 1:0;
+}
+
+void Food::eat(int index)
+{
+	foodeaten+=(int)pow(2,index);
+}
+
+struct node
+{
+	int x,y;
+};
+
+class Snake
+{
+	public:
+		static int base;
+		static int sclr[5];
+		static char ctrl[4][5];
+
+        vector<node> body;
+		int xdir,ydir,index;
+		char chdir;
+
+		Snake();
+		void init();
+        void kill();
+		void shift();
+		void remove(int);
+		void input(char);
+		void food();
+		int isDead();
+};
+
+int Snake::sclr[5]={BACKGROUNDCLR,P1CLR,P2CLR,P3CLR,P4CLR};
+int Snake::base=5;
+char Snake::ctrl[4][5]={"wasd","ijkl","tfgh","8456"};
+
+
+Snake:: Snake()
+{
+	body.resize(1);
+	index=xdir=ydir=0;
+	chdir='-';
+	textcolor(sclr[index+1]);
+	do{
+			body.front().x=getrand(GRIDY-1);
+			body.front().y=getrand(GRIDX);
+	}while(Board::grid[body.front().x][body.front().y]%2==1);
+}
+
+void Snake:: init()
+{
+	body.resize(1);
+	index=xdir=ydir=0;
+	chdir='-';
+	textcolor(sclr[index+1]);
+	do{
+			body.front().x=getrand(GRIDY-1);
+			body.front().y=getrand(GRIDX);
+	}while(Board::grid[body.front().x][body.front().y]%2==1);
+}
+
+void Snake:: remove(int n)
+{
+	int i,rev,cpy;
+
+	while(n!=0)
+	{
+        cpy=Board::gmap[body.back().x][body.back().y];
+        rev=0;
+        while(cpy!=0)
+        {
+            if(cpy%base!=index+1)
+            {
+                rev+=cpy%base;
+                rev*=base;
+            }
+            cpy/=base;
+        }
+        cpy=0;
+        while(rev!=0)
+        {
+            cpy+=rev%base;
+            cpy*=base;
+            rev/=base;
+        }
+        Board::gmap[body.back().x][body.back().y]=cpy;
+        gotoxy(body.back().y+3,body.back().x+3);
+        textcolor(sclr[cpy%base]);
+        printf("o");
+        body.pop_back();
+        n--;
+	}
+}
+void Snake:: shift()
+{
+	node t;
+	t.x=(GRIDY-1+body.front().x+xdir)%(GRIDY-1);
+	t.y=(GRIDX+body.front().y+ydir)%GRIDX;
+	body.insert(body.begin(),t);
+
+	textcolor(sclr[index+1]);
+	gotoxy(body[1].y+3,body[1].x+3);
+	printf("0");
+	gotoxy(body[0].y+3,body[0].x+3);
+	printf("%c",chdir);
+	remove(1);
+
+	Board::gmap[body.front().x][body.front().y]*=base;
+	Board::gmap[body.front().x][body.front().y]+=index+1;
+	gotoxy(1,1);cout<<" ";
+}
+
+void Snake:: input(char ch)
+{
+    int xnew=xdir,ynew=ydir;
+	char chnew=chdir;
+	if(ch==ctrl[index][0])
+	{    ynew=0;
+		 xnew=-1;
+		 chnew='^';
+	}
+	else if(ch==ctrl[index][1])
+	{	 xnew=0;
+		 ynew=-1;
+		 chnew='<';
+	}
+	else if(ch==ctrl[index][2])
+	{	 ynew=0;
+		 xnew=1;
+		 chnew='v';
+	}
+	else if(ch==ctrl[index][3])
+	{	 xnew=0;
+		 ynew=1;
+		 chnew='>';
+	}
+	else if(ch=='x')
+	{	 printf("exiting...");
+		 exit(0);
+	}
+	if(xnew*xdir==0 && ynew*ydir==0)
+	{
+		xdir=xnew;
+		ydir=ynew;
+		chdir=chnew;
+	}
+}
+
+void Snake::food()
+{
+    if(Food::ismatch(body.front().x,body.front().y))
+	Food::eat(index);
+	if(Food::ismatch(body.back().x,body.back().y) && Food::iseaten(index))
+	{
+		body.resize(body.size()+1);
+		textcolor(4);gotoxy(GRIDX+4,index+3);printf("%d", body.size(),"   ");
+		Food::newloc();
+	}
+    Food::showloc();
+    textcolor(sclr[index+1]);
+    gotoxy(GRIDX+4,index+3);
+    printf("%d", body.size(),"   ");
+}
+
+int Snake::isDead()
+{
+    if(Board::grid[body.front().x][body.front().y]%2==1)
+		return -1;
+    if(body.size()==0)
+        return 0;
+    for(int i=1; i<body.size(); i++)
+    {
+        if(body[0].x==body[i].x && body[0].y==body[i].y)
+            return -1;
+    }
+    return 0;
+}
+
+class multiplayer
+{
+	public:
+		static int noofplayers,winlen,scale,mod,playing;
+		static vector<Snake> player;
+
+		static void intro();
+		static void input();
+		static int status(Snake &s);
+		void play();
+};
+
+vector<Snake> multiplayer::player;
+int multiplayer::scale=-1;
+int multiplayer::winlen=10;
+int multiplayer::playing=1;
+int multiplayer::noofplayers=MAXPLAYERS;
+int multiplayer::mod=2;
+
+void multiplayer::intro()
+{
+	ifstream fr;
+	char* str;
+
+	system("cls");
+	textcolor(INTROCLR);
+	fr.open("MULTIPLAYER.txt");
+	while(fr.getline(str,80))
+        printf("%s%c",str,'\n');
+	fr.close();
+
+	textcolor(INPUTCLR);
+	printf("\n  Press any key to continue...");
+	getch();
+
+	system("cls");
+	textcolor(CONTROLSCLR);
+	printf("\n  CONTROLS:");
+	for(int ctr=1;ctr<=noofplayers;ctr++)
+	{
+		textcolor(Snake::sclr[ctr]);
+		printf("%s%d%s","\n\n\r  Player ",ctr," :    ");
+		printf("%c",Snake::ctrl[ctr-1][0]);
+		printf("\n\r               ");
+		printf("%c",Snake::ctrl[ctr-1][1]);
+		printf("%c",Snake::ctrl[ctr-1][2]);
+		printf("%c",Snake::ctrl[ctr-1][3]);
+	}
+
+	textcolor(INPUTCLR);
+	printf("\n\n\r  Press any key to continue...");
+	getch();
+	system("cls");
+}
+
+void multiplayer::input()
+{
+	textcolor(TEXTCLR);
+	printf("\n\r  Enter Game Details:\n");
+	printf("\n\r  Enter no of players\n\r  ");
+	cin>>noofplayers;
+	if(noofplayers<1)
+		noofplayers=2;
+	Snake::base=noofplayers+2;
+	printf("\r  Enter length to win\n\r  ");
+	cin>>winlen;
+}
+
+int multiplayer::status(Snake &s)
+{
+		if(s.body.size()==winlen)
+		{
+			Sleep(300);
+			Board::blank();
+			gotoxy(4,4);
+			textcolor(Snake::sclr[s.index+1]);
+			printf("%s%d%s","PLAYER ",s.index+1," WINS!");
+			gotoxy(0,GRIDY+3);
+			playing=-1;
+		}
+		else if(s.isDead()==-1)
+		{
+			Sleep(200);
+			s.remove(s.body.size()-1);
+			s.xdir=s.ydir=0;
+			playing=0;
+		}
+		return playing;
+}
+
+void multiplayer::play()
+{
+	intro();
+	input();
+	int i;
+	char ch;
+	Board::blank();
+	player.resize(noofplayers);
+	for(i=0;i<noofplayers;i++)
+        player[i].index=i;
+
+	while(playing!=-1)
+	{
+		scale=(scale+1)%mod;
+		if(!scale)
+		for(i=0;i<noofplayers;i++)
+			player[i].food();
+		if(kbhit())
+		{
+			ch=tolower(getch());
+			for(i=0;i<noofplayers;i++)
+			player[i].input(ch);
+		}
+		Sleep(DELAY/mod);
+		if(scale!=0)
+		{
+			for(i=0;i<noofplayers;i++)
+			{
+				player[i].shift();
+				if(status(player[i])==-1)
+                    break;
+			}
+		}
+	}
+	while(player.size()>0)
+        player.pop_back();
+}
+
+class survival: public Snake
+{
+    public:
+		static void intro();
+		int status();
+		void play();
+};
+
+void survival::intro()
+{
+	ifstream fr;
+	char* str;
+
+	system("cls");
+	textcolor(INTROCLR);
+	fr.open("SURVIVAL.txt");
+	while(fr.getline(str,80))
+        printf("%s%c",str,'\n');
+	fr.close();
+
+	textcolor(INPUTCLR);
+	printf("\n  Press any key to continue...");
+	getch();
+	system("cls");
+}
+
+int survival::status()
+{
+	if(body.size()+1==GRIDX*GRIDY)
+	{
+		Sleep(300);
+		Board::blank();
+		textcolor(WINCLR);
+		gotoxy(4,4);
+		printf("WAOH!!!");
+		gotoxy(4,5);
+		printf("\n\n\n\r YOU ACTUALLY FINSIHED SURVIVAL!!!");
+		gotoxy(0,GRIDY+3);
+		getch();getch();
+		return -1;
+	}
+	else if(isDead()==-1)
+	{
+		Sleep(300);
+		Board::blank();
+		textcolor(LOSECLR);
+		gotoxy(4,4);
+		printf("GAME OVER");
+		gotoxy(4,5);
+		printf("%s%d","Length Reached: ",body.size());
+		gotoxy(0,GRIDY+3);
+		return -1;
+	}
+	return 0;
+}
+
+void survival::play()
+{
+	index=0;
+	intro();
+	Board::blank();
+	while(status()!=-1)
+	{
+		food();
+		if(kbhit())
+            input(tolower(getch()));
+		Sleep(DELAY);
+		shift();
+	}
+}
+
+class adventure : public Snake
+{
+	public:
+		static const int maxlev;
+		int levlen,nooflev,currlev;
+
+		static void intro();
+		void inputdata();
+		int status();
+		void play();
+};
+const int adventure::maxlev=5;
+
+void adventure::intro()
+{
+	ifstream fr;
+	char str[300];
+
+	system("cls");;
+	textcolor(INTROCLR);
+	fr.open("ADVENTURE.txt");
+	while(fr.getline(str,80))
+        printf("%s%c",str,'\n');
+	fr.close();
+
+	textcolor(INPUTCLR);
+	printf("\n  Press any key to continue...");
+	getch();
+	system("cls");
+}
+
+void adventure::inputdata()
+{
+	textcolor(TEXTCLR);
+	printf("\n\r  Enter Game Details:\n");
+	printf("\n\r  Enter no of levels\n\r  ");
+	cin>>nooflev;
+	if(nooflev<0||nooflev>maxlev)
+	nooflev=maxlev;
+	printf("\r  Enter level length\n\r  ");
+	cin>>levlen;
+}
+
+int adventure::status()
+{
+	if(body.size()==nooflev+levlen)
+	{
+	    Sleep(300);
+		Board::blank();
+		gotoxy(4,4);
+		textcolor(WINCLR);
+		printf("YOU WON!!!");
+		gotoxy(0,GRIDY+3);
+		return -1;
+	}
+	else if(isDead()==-1)
+	{
+		Sleep(300);
+		Board::blank();
+		textcolor(LOSECLR);
+		gotoxy(4,4);
+		printf("GAME OVER");
+		gotoxy(4,5);
+		printf("%s%d","Level Reached: ",currlev);
+		gotoxy(0,GRIDY+3);
+		return -1;
+	}
+	else if(body.size()==currlev+levlen)
+	{
+		Sleep(300);
+		Board::blank();
+		gotoxy(4,4);
+		textcolor(WINCLR);
+		printf("%s%d","LEVEL ",++currlev);
+		gotoxy(0,GRIDY+3);
+		Sleep(1200);
+		Board::update();
+		Board::print();
+		remove(body.size()-1);
+		Food::newloc();
+		Sleep(1500);
+		return 0;
+	}
+	return 0;
+}
+
+void adventure::play()
+{
+	Board::addlevel();
+	index=currlev=0;
+	intro();
+	inputdata();
+	Board::blank();
+	while(status()!=-1)
+	{
+		food();
+		if(kbhit())
+			input(tolower(getch()));
+		Sleep(DELAY);
+		shift();
+	}
+}
+
+class Common: public Food, public Board
+{
+		public:
+			static int gamemode;
+
+			static void introscreen();
+			static void prep();
+			//static void userinput();
+			static void process();
+};
+
+int Common::gamemode=0;
+
+
+void Common::prep()
+{
+    int i,j;
+	grid.resize(GRIDY);
+	gmap.resize(GRIDY);
+	for(i=0;i<GRIDY;i++)
+	{
+		grid[i].resize(GRIDX);
+		gmap[i].resize(GRIDX);
+	}
+}
+void Common::introscreen()
+{
+	ifstream fr;
+	char str[500];
+
+	system("cls");
+	textcolor(TITLECLR);
+	fr.open("SNAKE.txt");
+	while(fr.getline(str,80))
+		printf("%s%c",str,'\n');
+	Sleep(500);
+	fr.close();
+
+	system("cls");
+	textcolor(RULESCLR);
+	fr.open("RULES.txt");
+	while(fr.getline(str,80))
+		printf("%s%c",str,'\n');
+	fr.close();
+
+	textcolor(INPUTCLR);
+	printf("\n\n\r  Press any key to continue...");
+	getch();
+	system("cls");
+//}
+//void Common::userinput()
+//{
+	textcolor(TEXTCLR);
+	printf("\n\n  ENTER GAME MODE:");
+    printf("\n\r  1.Survival\n\r  2.Multiplayer\n\r  3.Adventure\n\r");
+	cin>>Common::gamemode;
+}
+
+void Common::process()
+{
+	survival s1;
+	multiplayer s2;
+	adventure s3;
+	switch(gamemode)
+	{
+		case 2: s2.play();
+				  break;
+		case 3: s3.play();
+				  break;
+		default:
+		case 1: s1.play();
+				  break;
+	}
+}
+
+int main()
+{
+    Common::prep();
+	Common::introscreen();
+	Common::process();
+
+	Sleep(2000);
+	return 0;
+}
