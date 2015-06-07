@@ -1,0 +1,303 @@
+/**
+ * computer project(2012-2013)
+ * Aadi Jain
+ * 12 may 2012
+ * 
+ */
+
+   import java.io.*;
+   public class Quiz
+   {   
+        public static void main()throws IOException
+        {
+            InputStreamReader isr=new InputStreamReader(System.in);
+          BufferedReader br=new BufferedReader(isr);
+              
+         char ch;
+         char redo='y';//determine whether quiz is to redone or not
+         String roll=" ";
+         String name="";
+         
+         System.out.print('\u000C');//cls
+         title();
+         ch=(char)br.read();//here contol only continues when a character is inputed i.e. when enter key is pressed and thus it doesnt matter what is inputed
+         for(long delay=0l;delay<1000000000l;delay++);//time delay loop
+                  
+         System.out.print('\u000C');//cls
+         System.out.println("\n\n\tENTER YOUR NAME");
+         name=br.readLine();
+         System.out.println("\tENTER YOUR ROLL NUMBER");
+         roll=br.readLine();
+         for(long delay=0l;delay<1000000000l;delay++);//time delay loop
+         System.out.println("\n\tPRESS THE ENTER KEY TO CONTINUE >>");
+         ch=(char)br.read();//here contol only continues when a character is inputed i.e. when enter key is pressed and thus it doesnt matter what is inputed
+         
+         while(redo=='y' || redo=='Y')
+         {
+          System.out.print('\u000C');//cls
+          rules();
+          System.out.println("\n\tPRESS THE ENTER KEY TO CONTINUE >>");
+          ch=(char)br.read();//here contol only continues when a character is inputed i.e. when enter key is pressed and thus it doesnt matter what is inputed
+          
+          System.out.print('\u000C');//cls
+          questions(name,roll);//includes report card 
+               
+          System.out.println("\n\n\n\tDO YOU WANT TO TRY AGAIN ? ENTER Y TO RETRY QUIZ");
+          redo=(char)br.read();
+         }
+         
+         }
+        
+        public static void title()
+        {
+         int length =272,breadth=48;// length and breadth of the screen dimensions can be easily changed according to different computers
+         System.out.println();//bring cursor down
+   
+         for(int ctr=1;ctr<=length/2;ctr++)
+             System.out.print("+ ");//top row
+      
+         System.out.println();  //bring cursor down
+   
+         for(int ctr2=2;ctr2<breadth;ctr2++)
+             {
+                 System.out.print("+");
+                 
+                 for(int ctr3=2;ctr3<length;ctr3++)
+                 { ctr3+=coordinate(ctr3,ctr2); //call function coordinate to print lines in between side borders
+                     System.out.print(" ");
+                 }      //here ctr3 and ctr2 act as coordinates of the first characters of the lines to be printed
+                    
+                 System.out.print("+");
+                 System.out.println(); 
+             } //side rows
+   
+         for(int ctr4=1;ctr4<=length/2;ctr4++)
+             System.out.print("+ ");//bottom row
+         
+        }
+
+         public static int coordinate(int x,int y)
+         {
+         int l=0;
+         String s=" ";
+       
+          switch(y) //here y is between compared before x since y is smaller than x
+          {
+              case 13:
+                  switch(x)
+                     {
+                      case 123:s="SUBJECT : ENGLISH GRAMMAR";
+                      System.out.print(s);
+                      l=s.length(); 
+                     }
+                  break;
+              case 15:
+                  switch(x)
+                      {
+                       case 125:s="TOPIC : PREPOSITIONS";
+                       System.out.print(s);
+                       l=s.length(); 
+                      }
+                  break;
+              case 34:
+                  switch(x)
+                      {
+                       case 240:s="NAME : AADI JAIN";
+                       System.out.print(s);
+                       l=s.length(); 
+                      }
+                 break;
+              case 36:
+                  switch(x)
+                      {
+                       case 240:s="ROLL NO : 1";
+                       System.out.print(s);
+                       l=s.length();
+                      }
+                  break;
+              case 38:
+                  switch(x)
+                      {
+                       case 240:s="CLASS : 10";
+                       System.out.print(s);
+                       l=s.length(); 
+                      }
+                  break;
+             case 40:
+                  switch(x)
+                      {
+                       case 240:s="ACADEMIC YEAR : 2012-2013";
+                       System.out.print(s);
+                       l=s.length(); 
+                      }
+                  break;
+             case 47:
+                  switch(x)
+                      {
+                       case 235:s="Press the enter key to continue...";
+                       System.out.print(s);
+                       l=s.length(); 
+                      }
+                  break;
+          }
+        
+          return l;//here length of the string printed is returned
+          
+        }
+        
+        public static void rules()//rules of the quiz
+        {
+         System.out.println("\n\t\t\tRULES\n\n");
+         System.out.println("\t1. THERE ARE 10 QUESTION EACH WITH 4 OPTIONS\n");
+         System.out.println("\t2. YOU HAVE 2 TRIES PER QUESTION\n ");
+         System.out.println("\t3. CORRECT ANSWER ON -TRY 1 = 10 MARKS ");
+         System.out.println("\t                     -TRY 2 =  5 MARKS\n ");
+         System.out.println("\t4. ENTER ONLY OPTION (capital letters allowed)\n");
+         System.out.println("\t5. THERE IS NO TIMER\n");//no timer for the quiz as a whole but each page is controlled by time delay loops
+         System.out.println("\t6. THERE IS NO NEGATIVE MARKING FOR WRONG ANSWERS\n");
+        }
+        
+        public static void questions(String name,String roll)throws IOException 
+        {
+          InputStreamReader isr=new InputStreamReader(System.in);
+       BufferedReader br=new BufferedReader(isr);
+                
+        int q=0;//q is the number of questions
+        int try1=0;//keeps record of number of correct answers on try1
+        int try2=0;//keeps record of number of correct answers on try2
+        int choice=0;
+        char ch;
+        int trys=1;//trys stores whether a question is being answered on try1 or try2
+        int score=0;
+        
+        int status=0;//status determines whether the users choice is to be checked or not for eg. if choice is invalid it should not be checked
+        
+        
+        String a[][]={{"PREPOSITION IS A WORD PLACED BEFORE _____ TO SHOW ITS RELATIONSHIP WITH SOMETHING ELSE.","A NOUN OR PRONOUN","A VERB","AN ADJECTIVE","ALL OF THE ABOVE","A NOUN OR PRONOUN"},
+                      {"SHE DRINKS A LOT OF COFFEE _____ THE EVENING.","BY","AT","IN","ON","IN"},//column 5 stores the correct answer
+                      {"THE NEW TERM STARTS_____MARCH.","ON","AT","BY","IN","IN"},
+                      {"I HAVE BEEN WAITING FOR YOU_____EIGHT O’CLOCK.","SINCE","FROM","BY","TILL","SINCE"},
+                      {"THEY HAVE LIVED IN DELHI_____SIX MONTHS.","FOR","SINCE","FROM","BY","FOR"},
+                      {"THERE IS A BUS STOP_____THE END OF THE ROAD.","IN","AT","BY","ON","AT"},
+                      {"HE USED TO LIVE _____KANPUR.","IN","AT","INSIDE","NONE OF THE ABOVE","IN"},
+                      {"SHE LOST HER RING_____THE SAND.","BETWEEN","INTO","AMONG","IN","IN"},
+                      {"SUDDENLY HE JUMPED_____THE RIVER.","IN","INTO","BY","INSIDE","INTO"},
+                      {"HE SAT _____MARY AND JANET.","AMONG","BETWEEN","BESIDE","BESIDES","BETWEEN"}
+                     };//DECLARE AND INITIALIZE TWO-DIMENSIONAL ARRAY 
+              
+         System.out.println("\n\t\tFILL IN THE BLANKS");
+         
+         while(q<10)
+         { 
+          System.out.println("\n\n\n\n");
+          System.out.println("\tQ"+(q+1)+". "+a[q][0]);
+          System.out.println("\ta) "+a[q][1]);
+          System.out.println("\tb) "+a[q][2]);
+          System.out.println("\tc) "+a[q][3]);
+          System.out.println("\td) "+a[q][4]);
+          System.out.println("\n\tENTER YOUR CHOICE");//print question and options
+          
+          ch=br.readLine().charAt(0);//input choice
+                                     //sometimes on accidently entering more than one character the input for next choice is automatically taken
+                                     //for e.g. on entering 'ba' instead of 'b' , choice is taken as' b' for question 1 ,and 'a' for question 2 automatically
+                                     //hence an unconvention method of inputing is used
+          
+          status=0;  
+          
+          switch(ch)
+          {
+           case 'a':
+           case 'A':choice=1;
+                    break;
+           case 'b':
+           case 'B':choice=2;
+                    break;
+           case 'c':
+           case 'C':choice=3;
+                    break;
+           case 'd':
+           case 'D':choice=4;
+                    break;//choice now stores equavalent number of the option chosen(a-1, b-2, c-3, d-4)
+           default:System.out.println("\tINVALID ENTRY!! TRY AGAIN");
+                   status=1;//if ch is invalid answer is not checked i.e. status is changed to 1
+          }
+      
+          if(status==0)//answer is only checked if status is 0
+          {
+            if(a[q][choice].equals(a[q][5]))//checks if answer is correct
+            {
+             System.out.println("\tCORRECT ANSWER!!");
+             
+             if(trys==1)
+             {
+              score+=10;
+              try1++;
+             }
+             else //if correct increase score based on try number(try1 or try2)
+             {
+              score+=5;
+              try2++;
+             }
+             
+             trys=1;
+             choice=0;
+             q++;  
+            }
+             else 
+             {
+             if(trys==1)
+             {
+              System.out.println("\tWRONG ANSWER!! TRY AGAIN");
+              trys++;
+             }//if wromg answer on try 1 retry question
+             else
+             {
+              System.out.println("\tWRONG ANSWER!! CORRECT ANSWER IS \""+a[q][5]+"\"");
+              trys=1;
+              choice=0;
+              q++;//if wrong on try 2 print correct answer
+             }
+             
+            }//effect of retrying question is made by increasing q only after a correct answer or after printing the correct answer(when answer is wrong twice in a row)
+   
+          }   
+    
+         }
+         
+         System.out.println("\n\n\n\t\tGOOD JOB");//to indicate quiz is over
+         for(long delay=0l;delay<1000000000l;delay++);//time delay loop 
+         System.out.println("\n\n\tPRESS THE ENTER KEY TO CONTINUE >>");
+         ch=(char)br.read();//here contol only continues when a character is inputed i.e. when enter key is pressed and thus it doesnt matter what is inputed
+                               
+         System.out.print('\u000C');//cls 
+         reportcard(score,name,roll,try1,try2,q);//print quiz statistics
+               
+        }
+      
+               
+        public static void reportcard(int score,String name,String roll,int try1,int try2,int q)
+        {
+        String grade=" ";
+        
+        if(score>90)
+        grade="EXCELLENT";
+        else if(score>80)
+        grade="GOOD";
+        else if(score>70)
+        grade="FAIR";
+        else if(score>=60)
+        grade="AVERAGE";
+        else 
+        grade="POOR";    //grade is determined on score
+     
+        System.out.println("\n\tREPORT CARD\n\n");
+        System.out.println("\n\tNAME - "+name);
+        System.out.println("\n\tROLL NUMBER - "+roll);
+        System.out.println("\n\tPERCENTAGE - "+(score*10/q)+"%");//since max marks per queston is 10
+        System.out.println("\n\tCORRECT ANSWERS ON TRY 1 - "+try1);
+        System.out.println("\n\tCORRECT ANSWERS ON TRY 2 - "+try2);
+        System.out.println("\n\tWRONG ANSWERS -"+(q-try1-try2));
+        System.out.println("\n\tGRADE - "+grade);
+  
+       }
+   }
